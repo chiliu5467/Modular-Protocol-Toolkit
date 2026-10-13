@@ -1,28 +1,55 @@
 #include "protocol/ProtocolHeader.h"
+#include "ByteOrder.h"
 
 namespace protocol
 {
-    inline constexpr std::size_t HEADER_SIZE = 10;
-
     std::array<std::byte, HEADER_SIZE>
         EncodeHeader(const Header& header)
     {
         std::array<std::byte, HEADER_SIZE> result{};
+        size_t offset = 0;
 
-        result[0] = std::byte{ 0x4D };
-        result[1] = std::byte{ 0x4C };
-        result[2] = std::byte{ 0x01 };
+        result[offset++] = std::byte{ 0x4D };
+        result[offset++] = std::byte{ 0x4C };
+        result[offset++] = std::byte{ 0x01 };
+		result[offset++] = static_cast<std::byte>(header.type);
 
-		result[3] = static_cast<std::byte>(header.type);
+		auto sequenceBytes = protocol::detail::EncodeU32BE(header.sequence);
+        std::copy(sequenceBytes.begin(), sequenceBytes.end(), result.begin() + offset);
+        offset += sequenceBytes.size();
 
-        result[4] = static_cast<std::byte>((header.sequence >> 24) & 0xFF );
-        result[5] = static_cast<std::byte>((header.sequence >> 16) & 0xFF );
-        result[6] = static_cast<std::byte>((header.sequence >> 8) & 0xFF );
-        result[7] = static_cast<std::byte>(header.sequence & 0xFF );
-
-        result[8] = static_cast<std::byte>((header.payloadLength >> 8) & 0xFF);
-        result[9] = static_cast<std::byte>(header.payloadLength & 0xFF );
+		auto payloadLengthBytes = protocol::detail::EncodeU16BE(header.payloadLength);
+        std::copy(payloadLengthBytes.begin(), payloadLengthBytes.end(), result.begin() + offset);
+        offset += payloadLengthBytes.size();
 
 		return result;
+    }
+
+    std::optional<Header>
+        DecodeHeader(std::span<const std::byte> bytes)
+    {
+        Header header{};
+
+        if (bytes.size() != HEADER_SIZE)
+        {
+            return std::nullopt;
+        }
+
+        if (bytes[0] != std::byte{ 0x4D } ||
+            bytes[1] != std::byte{ 0x4C } ||
+            bytes[2] != std::byte{ 0x01 })
+        {
+			return std::nullopt;
+        }
+
+		header.type = std::to_integer<std::uint8_t>(bytes[3]);
+
+        auto sequenceBytes = bytes.subspan<4, 4>();
+		header.sequence = protocol::detail::DecodeU32BE(sequenceBytes);
+
+		auto payloadLengthBytes = bytes.subspan<8, 2>();
+		header.payloadLength = protocol::detail::DecodeU16BE(payloadLengthBytes);
+
+        return header;
     }
 }

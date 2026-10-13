@@ -27,7 +27,10 @@ int main()
         std::byte{0x03}
     };
 
-    assert(encoded == expected);
+    if (encoded != expected)
+    {
+        return 1;
+    }
 
     return 0;
 }

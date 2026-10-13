@@ -18,11 +18,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Static Library
 add_library(protocol STATIC
     src/ProtocolHeader.cpp
+    src/ByteOrder.cpp
 )
 
 # Public header directory
-target_include_directories(protocol PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+target_include_directories(protocol 
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 # CLI executable
@@ -30,13 +34,15 @@ add_executable(protocol_cli
     app/main.cpp
 )
 
-target_link_libraries(protocol_cli PRIVATE protocol)
+target_link_libraries(protocol_cli 
+    PRIVATE protocol)
 
 # Test executable
 enable_testing()
 
 add_executable(protocol_tests
     tests/test_protocol.cpp
+    tests/header_self_contained.cpp
 )
 
 target_link_libraries(protocol_tests PRIVATE protocol)
