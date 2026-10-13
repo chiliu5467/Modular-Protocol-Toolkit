@@ -1,6 +1,8 @@
 #include "protocol/ProtocolHeader.h"
 #include "ByteOrder.h"
 
+#include <algorithm>
+
 namespace protocol
 {
     std::array<std::byte, HEADER_SIZE>
