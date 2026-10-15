@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <optional>
 #include <span>
+#include <variant>
+#include <string_view>
 
 namespace protocol
 {
@@ -22,4 +24,20 @@ namespace protocol
 
     std::optional<Header>
         DecodeHeader(std::span<const std::byte> bytes);
+
+    enum class DecodeError
+    {
+        InvalidSize,
+        InvalidMagic,
+        UnsupportedVersion
+    };
+
+    using HeaderDecodeResult =
+        std::variant<Header, DecodeError>;
+
+    HeaderDecodeResult DecodeHeaderDetailed(
+        std::span<const std::byte> bytes);
+
+    std::string_view DecodeErrorMessage(
+        DecodeError error) noexcept;
 }
