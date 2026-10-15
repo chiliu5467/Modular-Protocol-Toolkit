@@ -19,6 +19,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(protocol STATIC
     src/ProtocolHeader.cpp
     src/ByteOrder.cpp
+    src/BasicHeaderPolicy.cpp
 )
 
 # Public header directory
@@ -32,7 +33,7 @@ target_include_directories(protocol
 # CLI executable
 add_executable(protocol_cli
     app/main.cpp
-)
+ )
 
 target_link_libraries(protocol_cli 
     PRIVATE protocol)
@@ -48,3 +49,16 @@ add_executable(protocol_tests
 target_link_libraries(protocol_tests PRIVATE protocol)
 
 add_test(NAME protocol_smoke COMMAND protocol_tests)
+
+add_executable(policy_tests
+    tests/test_policy.cpp
+)
+
+target_link_libraries(policy_tests
+    PRIVATE protocol
+)
+
+add_test(
+    NAME policy_tests
+    COMMAND policy_tests
+)

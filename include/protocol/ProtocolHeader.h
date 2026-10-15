@@ -29,7 +29,8 @@ namespace protocol
     {
         InvalidSize,
         InvalidMagic,
-        UnsupportedVersion
+        UnsupportedVersion,
+        PolicyRejected
     };
 
     using HeaderDecodeResult =
@@ -40,4 +41,10 @@ namespace protocol
 
     std::string_view DecodeErrorMessage(
         DecodeError error) noexcept;
+
+    class HeaderPolicy;
+
+    HeaderDecodeResult DecodeHeaderWithPolicy(
+        std::span<const std::byte> bytes,
+        const HeaderPolicy& policy);
 }

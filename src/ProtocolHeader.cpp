@@ -1,10 +1,15 @@
 #include "protocol/ProtocolHeader.h"
 #include "ByteOrder.h"
+#include "protocol/HeaderPolicy.h"
 
 #include <algorithm>
 
 namespace protocol
 {
+    // =====================================
+    // 1. Encode Header
+    // =====================================
+
     std::array<std::byte, HEADER_SIZE>
         EncodeHeader(const Header& header)
     {
@@ -27,18 +32,9 @@ namespace protocol
 		return result;
     }
 
-    std::optional<Header>
-        DecodeHeader(std::span<const std::byte> bytes)
-    {
-		auto result = DecodeHeaderDetailed(bytes);
-
-        if (auto* header = std::get_if<Header>(&result))
-        {
-            return *header;
-        }
-
-        return std::nullopt;
-    }
+    // =====================================
+    // 2. Core Decoder
+    // =====================================
 
     HeaderDecodeResult DecodeHeaderDetailed(
         std::span<const std::byte> bytes)
@@ -72,6 +68,52 @@ namespace protocol
         return header;
     }
 
+    // =====================================
+    // 3. Simple Decoder
+    // =====================================
+
+    std::optional<Header>
+        DecodeHeader(std::span<const std::byte> bytes)
+    {
+		auto result = DecodeHeaderDetailed(bytes);
+
+        if (auto* header = std::get_if<Header>(&result))
+        {
+            return *header;
+        }
+
+        return std::nullopt;
+    }
+
+    // =====================================
+    // 4. Policy-based Decoder
+    // =====================================
+
+    HeaderDecodeResult DecodeHeaderWithPolicy(
+        std::span<const std::byte> bytes,
+        const HeaderPolicy& policy)
+    {
+		auto result = DecodeHeaderDetailed(bytes);
+
+		const auto* header = std::get_if<Header>(&result);
+
+        if (header == nullptr)
+        {
+			return result;
+        }
+
+        if (!policy.Accept(*header))
+        {
+			return DecodeError::PolicyRejected;
+        }
+
+        return *header;
+    }
+
+    // =====================================
+    // 5. Error Message
+    // =====================================
+
     std::string_view DecodeErrorMessage(
         DecodeError error) noexcept
     {
@@ -85,6 +127,9 @@ namespace protocol
 
         case DecodeError::UnsupportedVersion:
             return "Unsupported protocol version";
+
+        case DecodeError::PolicyRejected:
+            return "Header rejected by policy";
         }
 
         return "Unknown decode error";
