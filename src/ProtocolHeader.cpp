@@ -36,10 +36,6 @@ namespace protocol
         {
             return *header;
         }
-        else if (auto* msg = std::get_if<DecodeError>(&result))
-        {
-            DecodeErrorMessage(*msg);
-        }
 
         return std::nullopt;
     }
