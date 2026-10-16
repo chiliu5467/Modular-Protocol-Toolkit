@@ -2,7 +2,6 @@
 #include "protocol/HeaderPolicy.h"
 #include "protocol/BasicHeaderPolicy.h"
 
-#include <cassert>
 #include <variant>
 #include <iostream>
 #include <string_view>
@@ -57,10 +56,16 @@ bool TestBasicPolicy(
         policy
     );
 
-    bool accepted =
-        std::holds_alternative<protocol::Header>(result);
+    if (expectedAccept)
+    {
+        return std::holds_alternative<protocol::Header>(result);
+    }
 
-    return accepted == expectedAccept;
+    const auto* error =
+        std::get_if<protocol::DecodeError>(&result);
+
+    return error != nullptr &&
+        *error == protocol::DecodeError::PolicyRejected;
 }
 
 bool Check(bool condition, std::string_view testName)

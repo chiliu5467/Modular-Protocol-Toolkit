@@ -12,8 +12,6 @@ endif()
 # Project settings
 project(ModularProtocolToolkit LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 # Static Library
 add_library(protocol STATIC
     src/ProtocolHeader.cpp
