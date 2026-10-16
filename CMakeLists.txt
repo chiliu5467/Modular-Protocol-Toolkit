@@ -12,7 +12,6 @@ endif()
 # Project settings
 project(ModularProtocolToolkit LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Static Library
@@ -20,6 +19,10 @@ add_library(protocol STATIC
     src/ProtocolHeader.cpp
     src/ByteOrder.cpp
     src/BasicHeaderPolicy.cpp
+)
+
+target_compile_features(protocol
+    PUBLIC cxx_std_20
 )
 
 # Public header directory
